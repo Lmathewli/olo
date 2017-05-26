@@ -35,6 +35,21 @@
           商品评价
         </h1>
         <ratingselect :ratings="food.ratings" :selectType="selectType" :onlyContent="onlyContent" :desc="desc"></ratingselect>
+        <div class="rating-wrapper">
+          <ul v-show="food.ratings">
+            <li v-show="needShow(rating.rateType, rating.text)" v-for="rating in food.ratings" class="rating-item border-1px">
+              <div class="user">
+                <span class="name" v-text="rating.username"></span>
+                <img class="avatar" width="12" height="12" :src="rating.avatar">
+              </div>
+              <div class="time" v-text="rating.rateTime"></div>
+              <p class="text">
+                <span :class="{'icon-thumb_up': rating.rateType === 0, 'icon-thumb_down': rating.rateType === 1}"></span>{{rating.text}}
+              </p>
+            </li>
+          </ul>
+          <div class="no-rating" v-show="!food.ratings"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -72,7 +87,7 @@ export default {
     show () {
       this.showFlag = true
       this.selectType = ALL
-      this.onlyContent = false
+      this.onlyContent = true
 
       // 保证dom渲染
       this.$nextTick(() => {
@@ -92,7 +107,33 @@ export default {
       if (!event._constructed) {
         return
       }
+      this.$emit('cart.add', event.target)
       Vue.set(this.food, 'count', 1)
+    },
+    needShow (type, text) {
+      if (this.onlyContent && !text) {
+        return false
+      }
+      if (this.selectType === ALL) {
+        return true
+      } else {
+        return type === this.selectType
+      }
+    }
+  },
+  events: {
+    'ratingtype.select': function (type) {
+      this.selectType = type
+      console.log('test' + this.selectType)
+      this.$nextTick(() => {
+        this.scroll.refresh()
+      })
+    },
+    'content.toggle': function (onlyContent) {
+      this.onlyContent = onlyContent
+      this.$nextTick(() => {
+        this.scroll.refresh()
+      })
     }
   },
   components: {
@@ -195,4 +236,41 @@ export default {
         margin-left: 18px
         font-size: 14px
         color: rgb(7,17,27)
+      .rating-wrapper
+        padding: 0 18px
+        .rating-item
+          position: relative
+          padding: 16px 0
+          border-1px(rgba(7,17,27,0.1))
+          .user
+            position: absolute
+            right: 0
+            top: 16px
+            line-height: 12px
+            font-size: 0
+            .name
+              display: inline-block
+              margin-right: 6px
+              vertical-align: top
+              font-size: 10px
+              color: rgb(147,153,159)
+            .avatar
+              border-radius: 50%
+          .time
+            margin-bottom: 6px
+            line-height: 12px
+            font-size: 10px
+            color: rgb(147,153,159)
+          .text
+            line-height: 16px
+            font-size: 12px
+            color: rgb(7,17,27)
+            .icon-thumb_up, .icon-thumb_down
+              margin-right: 4px
+              line-height: 16px
+              font-size: 12px
+            .icon-thumb_up
+              color: rgb(0,160,220)
+            .icon-thumb_down
+              color: rgb(147,153,159)
 </style>
